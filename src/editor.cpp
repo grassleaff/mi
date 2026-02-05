@@ -62,12 +62,24 @@ void Editor::render() {
 
     for (int i = 0; i < rows - 1; i++) {
         int line_idx = i + row_offset;
-        if (line_idx >= buffer.line_count()) break;
 
-        mvprintw(i, 0, "%4d ", line_idx + 1);
+        if (line_idx < buffer.line_count()) {
+            mvprintw(i, 0, "%4d ", line_idx + 1);
+            mvprintw(i, 5, "%s", buffer.lines[line_idx].c_str());
+        } else {
+            attroff(COLOR_PAIR(1));
+            attroff(COLOR_PAIR(2));
+            attroff(A_BOLD);
+            attroff(A_REVERSE);
 
-        auto& line = buffer.lines[line_idx];
-        mvprintw(i, 5, "%s", line.c_str());
+            attron(COLOR_PAIR(10));
+            attron(A_DIM);
+
+            mvprintw(i, 0, "   ~");
+
+            attroff(COLOR_PAIR(10));
+            attroff(A_DIM);
+        }
     }
 
     if (mode == Mode::COMMAND) {

@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
 
     init_pair(1, COLOR_BLACK, COLOR_BLUE);   // NORMAL
     init_pair(2, COLOR_BLACK, COLOR_GREEN);  // INSERT
+    init_pair(10, COLOR_BLACK, -1);          // "~"
 
     std::string file = (argc > 1) ? argv[1] : "";
 
