@@ -66,17 +66,18 @@ void Editor::render_status_bar() {
 }
 
 void Editor::render() {
-    clear();
-
     getmaxyx(stdscr, rows, cols);
     erase();
+
+    int sidebar = flm.width();
 
     for (int i = 0; i < rows - 1; i++) {
         int line_idx = i + row_offset;
 
         if (line_idx < buffer.line_count()) {
-            mvprintw(i, 0, "%4d ", line_idx + 1);
-            mvprintw(i, 5, "%s", buffer.lines[line_idx].c_str());
+            mvprintw(i, sidebar + 0, "%4d ", line_idx + 1);
+            mvprintw(i, sidebar + 5, "%s", buffer.lines[line_idx].c_str());
+
         } else {
             attroff(COLOR_PAIR(1));
             attroff(COLOR_PAIR(2));
@@ -86,7 +87,7 @@ void Editor::render() {
             attron(COLOR_PAIR(10));
             attron(A_DIM);
 
-            mvprintw(i, 0, "   ~");
+            mvprintw(i, sidebar + 0, "   ~");
 
             attroff(COLOR_PAIR(10));
             attroff(A_DIM);
@@ -99,8 +100,10 @@ void Editor::render() {
         render_status_bar();
     }
 
+    flm.render(rows);
+
     int screen_y = buffer.cursor.y - row_offset;
-    int screen_x = buffer.cursor.x + 5;
+    int screen_x = buffer.cursor.x + sidebar + 5;
 
     if (screen_y >= 0 && screen_y < rows - 1) {
         move(screen_y, screen_x);
@@ -112,6 +115,21 @@ void Editor::render() {
 
 void Editor::handleInput() {
     int ch = getch();
+
+    if (mode == Mode::NORMAL && ch == 6) { // Ctrl+F
+        flm.toggle();
+        return;
+    }
+
+    if (flm.is_open() && mode != Mode::INSERT) {
+        std::string file;
+        if (flm.handle_input(ch, file)) {
+            File::load(file, buffer);
+            filename = file;
+            buffer.set_modified(false);
+        }
+        return;
+    }
 
     if (mode == Mode::INSERT) {
         switch (ch) {
@@ -226,12 +244,18 @@ void Editor::handleInput() {
                 exit(0);
             }
 
+            else if (command == "flm") {
+                flm.toggle();
+                command.clear();
+                mode = Mode::NORMAL;
+                return;
+            }
+
             else if (command.rfind("wq", 0) == 0) {
                 std::string new_filename = filename;
 
-                if (command.size() > 2 && command[2] == ' ') {
+                if (command.size() > 2 && command[2] == ' ')
                     new_filename = command.substr(3);
-                }
 
                 if (!new_filename.empty()) {
                     if (File::save(new_filename, buffer)) {
@@ -246,9 +270,8 @@ void Editor::handleInput() {
             else if (command.rfind("w", 0) == 0) {
                 std::string new_filename = filename;
 
-                if (command.size() > 1 && command[1] == ' ') {
+                if (command.size() > 1 && command[1] == ' ')
                     new_filename = command.substr(2);
-                }
 
                 if (!new_filename.empty()) {
                     if (File::save(new_filename, buffer)) {

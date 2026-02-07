@@ -9,7 +9,8 @@ SRC = \
 	src/main.cpp \
 	src/editor.cpp \
 	src/buffer.cpp \
-	src/file.cpp
+	src/file.cpp \
+	src/flm.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "buffer.hpp"
+#include "flm.hpp"
 #include <string>
 
 constexpr int TAB_WIDTH = 4;
@@ -7,7 +8,8 @@ constexpr int TAB_WIDTH = 4;
 enum class Mode {
     NORMAL,
     INSERT,
-    COMMAND
+    COMMAND,
+    FLM
 };
 
 class Editor {
@@ -18,6 +20,8 @@ public:
 private:
     Buffer buffer;
     Mode mode;
+    FLM flm;
+
     std::string filename;
     std::string command;
     std::string command_buffer;
